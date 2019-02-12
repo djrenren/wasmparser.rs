@@ -176,6 +176,7 @@ impl<'a> BinaryReader<'a> {
             -0x03 => Ok(Type::F32),
             -0x04 => Ok(Type::F64),
             -0x05 => Ok(Type::V128),
+            -0x06 => Ok(Type::Handle),
             -0x10 => Ok(Type::AnyFunc),
             -0x11 => Ok(Type::AnyRef),
             -0x20 => Ok(Type::Func),
