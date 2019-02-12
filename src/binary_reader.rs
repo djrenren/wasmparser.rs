@@ -1060,13 +1060,107 @@ impl<'a> BinaryReader<'a> {
             0xd0 => Operator::RefNull,
             0xd1 => Operator::RefIsNull,
 
+            0xfa => self.read_0xfa_operator()?,
             0xfc => self.read_0xfc_operator()?,
             0xfd => self.read_0xfd_operator()?,
             0xfe => self.read_0xfe_operator()?,
-
             _ => {
                 return Err(BinaryReaderError {
                     message: "Unknown opcode",
+                    offset: self.original_position() - 1,
+                });
+            }
+        })
+    }
+
+    fn read_0xfa_operator(&mut self) -> Result<Operator<'a>> {
+        let code = self.read_u8()? as u8;
+        Ok(match code {
+            0x00 => Operator::HandleNewSegment,
+            0x01 => Operator::HandleFreeSegment,
+            0x02 => Operator::HandleAdd,
+            0x03 => Operator::HandleSub,
+            0x04 => Operator::HandleSegmentSlice,
+            0x05 => Operator::HandleSegmentLoad {
+                memarg: self.read_memarg()?,
+            },
+            0x06 => Operator::HandleSegmentLoad {
+                memarg: self.read_memarg()?,
+            },
+
+            0x28 => Operator::I32SegmentLoad {
+                memarg: self.read_memarg()?,
+            },
+            0x29 => Operator::I64SegmentLoad {
+                memarg: self.read_memarg()?,
+            },
+            0x2a => Operator::F32SegmentLoad {
+                memarg: self.read_memarg()?,
+            },
+            0x2b => Operator::F64SegmentLoad {
+                memarg: self.read_memarg()?,
+            },
+            0x2c => Operator::I32SegmentLoad8S {
+                memarg: self.read_memarg()?,
+            },
+            0x2d => Operator::I32SegmentLoad8U {
+                memarg: self.read_memarg()?,
+            },
+            0x2e => Operator::I32SegmentLoad16S {
+                memarg: self.read_memarg()?,
+            },
+            0x2f => Operator::I32SegmentLoad16U {
+                memarg: self.read_memarg()?,
+            },
+            0x30 => Operator::I64SegmentLoad8S {
+                memarg: self.read_memarg()?,
+            },
+            0x31 => Operator::I64SegmentLoad8U {
+                memarg: self.read_memarg()?,
+            },
+            0x32 => Operator::I64SegmentLoad16S {
+                memarg: self.read_memarg()?,
+            },
+            0x33 => Operator::I64SegmentLoad16U {
+                memarg: self.read_memarg()?,
+            },
+            0x34 => Operator::I64SegmentLoad32S {
+                memarg: self.read_memarg()?,
+            },
+            0x35 => Operator::I64SegmentLoad32U {
+                memarg: self.read_memarg()?,
+            },
+            0x36 => Operator::I32SegmentStore {
+                memarg: self.read_memarg()?,
+            },
+            0x37 => Operator::I64SegmentStore {
+                memarg: self.read_memarg()?,
+            },
+            0x38 => Operator::F32SegmentStore {
+                memarg: self.read_memarg()?,
+            },
+            0x39 => Operator::F64SegmentStore {
+                memarg: self.read_memarg()?,
+            },
+            0x3a => Operator::I32SegmentStore8 {
+                memarg: self.read_memarg()?,
+            },
+            0x3b => Operator::I32SegmentStore16 {
+                memarg: self.read_memarg()?,
+            },
+            0x3c => Operator::I64SegmentStore8 {
+                memarg: self.read_memarg()?,
+            },
+            0x3d => Operator::I64SegmentStore16 {
+                memarg: self.read_memarg()?,
+            },
+            0x3e => Operator::I64SegmentStore32 {
+                memarg: self.read_memarg()?,
+            },
+
+            _ => {
+                return Err(BinaryReaderError {
+                    message: "Unknown 0xfa (Memsafety) opcode",
                     offset: self.original_position() - 1,
                 });
             }

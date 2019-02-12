@@ -29,6 +29,7 @@ mod simple_tests {
             enable_reference_types: true,
             enable_simd: true,
             enable_bulk_memory: true,
+            enable_memory_safety: true,
         },
         mutable_global_imports: true,
     });
