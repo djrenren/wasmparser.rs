@@ -638,6 +638,8 @@ pub enum Operator<'a> {
     HandleAdd,
     HandleSub,
     HandleSegmentSlice,
+    HandleSerialize,
+    HandleDeserialize,
     HandleSegmentLoad { memarg: MemoryImmediate },
     HandleSegmentStore { memarg: MemoryImmediate },
 

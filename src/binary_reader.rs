@@ -1082,10 +1082,12 @@ impl<'a> BinaryReader<'a> {
             0x02 => Operator::HandleAdd,
             0x03 => Operator::HandleSub,
             0x04 => Operator::HandleSegmentSlice,
-            0x05 => Operator::HandleSegmentLoad {
+            0x05 => Operator::HandleSerialize,
+            0x06 => Operator::HandleDeserialize,
+            0x07 => Operator::HandleSegmentLoad {
                 memarg: self.read_memarg()?,
             },
-            0x06 => Operator::HandleSegmentLoad {
+            0x08 => Operator::HandleSegmentStore {
                 memarg: self.read_memarg()?,
             },
 

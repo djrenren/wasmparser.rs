@@ -392,7 +392,7 @@ impl OperatorValidator {
     ) -> OperatorValidatorResult<()> {
         self.check_frame_size(func_state, 1)?;
         if !func_state.assert_stack_type_at(0, operand) {
-            return Err("stack operand type mismatch");
+            return Err("stack operand type mismatch1");
         }
         Ok(())
     }
@@ -405,10 +405,10 @@ impl OperatorValidator {
     ) -> OperatorValidatorResult<()> {
         self.check_frame_size(func_state, 2)?;
         if !func_state.assert_stack_type_at(1, operand1) {
-            return Err("stack operand type mismatch");
+            return Err("stack operand type mismatch2");
         }
         if !func_state.assert_stack_type_at(0, operand2) {
-            return Err("stack operand type mismatch");
+            return Err("stack operand type mismatch3");
         }
         Ok(())
     }
@@ -422,7 +422,7 @@ impl OperatorValidator {
         self.check_frame_size(func_state, len)?;
         for i in 0..len {
             if !func_state.assert_stack_type_at(len - 1 - i, expected_types[i]) {
-                return Err("stack operand type mismatch");
+                return Err("stack operand type mismatch4");
             }
         }
         Ok(())
@@ -538,6 +538,18 @@ impl OperatorValidator {
         resources: &WasmModuleResources,
     ) -> OperatorValidatorResult<()> {
         self.check_memory_index(0, resources)?;
+        let align = memarg.flags;
+        if align > max_align {
+            return Err("align is required to be at most the number of accessed bytes");
+        }
+        Ok(())
+    }
+
+    fn check_segment_memarg(
+        &self,
+        memarg: &MemoryImmediate,
+        max_align: u32,
+    ) -> OperatorValidatorResult<()> {
         let align = memarg.flags;
         if align > max_align {
             return Err("align is required to be at most the number of accessed bytes");
@@ -1604,156 +1616,166 @@ impl OperatorValidator {
             }
             Operator::HandleSegmentSlice => {
                 self.check_memory_safety_enabled()?;
-                self.check_operands(func_state, &[Type::Handle, Type::I32, Type::I32])?;
-                OperatorAction::ChangeFrameWithType(3, Type::Handle)
+                self.check_operands_2(func_state, Type::Handle, Type::I32)?;
+                OperatorAction::ChangeFrameWithType(2, Type::Handle)
+            },
+            Operator::HandleSerialize => {
+                self.check_memory_safety_enabled()?;
+                self.check_operands_1(func_state, Type::Handle)?;
+                OperatorAction::ChangeFrameWithType(1, Type::I64)
+            },
+            Operator::HandleDeserialize => {
+                self.check_memory_safety_enabled()?;
+                self.check_operands_1(func_state, Type::I64)?;
+                OperatorAction::ChangeFrameWithType(1, Type::Handle)
             },
             Operator::HandleSegmentLoad { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 3, resources)?;
+                self.check_segment_memarg(memarg, 3)?;
                 self.check_operands_1(func_state, Type::Handle)?;
                 OperatorAction::ChangeFrameWithType(1, Type::Handle)
             }
             Operator::HandleSegmentStore { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 3, resources)?;
+                self.check_segment_memarg(memarg, 3)?;
                 self.check_operands_2(func_state, Type::Handle, Type::Handle)?;
                 OperatorAction::ChangeFrame(2)
             }
             Operator::I32SegmentLoad { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 2, resources)?;
+                self.check_segment_memarg(memarg, 2)?;
                 self.check_operands_1(func_state, Type::Handle)?;
                 OperatorAction::ChangeFrameWithType(1, Type::I32)
             }
             Operator::I64SegmentLoad { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 3, resources)?;
+                self.check_segment_memarg(memarg, 3)?;
                 self.check_operands_1(func_state, Type::Handle)?;
                 OperatorAction::ChangeFrameWithType(1, Type::I64)
             }
             Operator::F32SegmentLoad { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 2, resources)?;
+                self.check_segment_memarg(memarg, 2)?;
                 self.check_operands_1(func_state, Type::Handle)?;
                 OperatorAction::ChangeFrameWithType(1, Type::F32)
             }
             Operator::F64SegmentLoad { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 3, resources)?;
+                self.check_segment_memarg(memarg, 3)?;
                 self.check_operands_1(func_state, Type::Handle)?;
                 OperatorAction::ChangeFrameWithType(1, Type::F64)
             }
             Operator::I32SegmentLoad8S { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 0, resources)?;
+                self.check_segment_memarg(memarg, 0)?;
                 self.check_operands_1(func_state, Type::Handle)?;
                 OperatorAction::ChangeFrameWithType(1, Type::I32)
             }
             Operator::I32SegmentLoad8U { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 0, resources)?;
+                self.check_segment_memarg(memarg, 0)?;
                 self.check_operands_1(func_state, Type::Handle)?;
                 OperatorAction::ChangeFrameWithType(1, Type::I32)
             }
             Operator::I32SegmentLoad16S { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 1, resources)?;
+                self.check_segment_memarg(memarg, 1)?;
                 self.check_operands_1(func_state, Type::Handle)?;
                 OperatorAction::ChangeFrameWithType(1, Type::I32)
             }
             Operator::I32SegmentLoad16U { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 1, resources)?;
+                self.check_segment_memarg(memarg, 1)?;
                 self.check_operands_1(func_state, Type::Handle)?;
                 OperatorAction::ChangeFrameWithType(1, Type::I32)
             }
             Operator::I64SegmentLoad8S { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 0, resources)?;
+                self.check_segment_memarg(memarg, 0)?;
                 self.check_operands_1(func_state, Type::Handle)?;
                 OperatorAction::ChangeFrameWithType(1, Type::I64)
             }
             Operator::I64SegmentLoad8U { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 0, resources)?;
+                self.check_segment_memarg(memarg, 0)?;
                 self.check_operands_1(func_state, Type::Handle)?;
                 OperatorAction::ChangeFrameWithType(1, Type::I64)
             }
             Operator::I64SegmentLoad16S { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 1, resources)?;
+                self.check_segment_memarg(memarg, 1)?;
                 self.check_operands_1(func_state, Type::Handle)?;
                 OperatorAction::ChangeFrameWithType(1, Type::I64)
             }
             Operator::I64SegmentLoad16U { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 1, resources)?;
+                self.check_segment_memarg(memarg, 1)?;
                 self.check_operands_1(func_state, Type::Handle)?;
                 OperatorAction::ChangeFrameWithType(1, Type::I64)
             }
             Operator::I64SegmentLoad32S { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 2, resources)?;
+                self.check_segment_memarg(memarg, 2)?;
                 self.check_operands_1(func_state, Type::Handle)?;
                 OperatorAction::ChangeFrameWithType(1, Type::I64)
             }
             Operator::I64SegmentLoad32U { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 2, resources)?;
+                self.check_segment_memarg(memarg, 2)?;
                 self.check_operands_1(func_state, Type::Handle)?;
                 OperatorAction::ChangeFrameWithType(1, Type::I64)
             }
             Operator::I32SegmentStore { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 2, resources)?;
+                self.check_segment_memarg(memarg, 2)?;
                 self.check_operands_2(func_state, Type::Handle, Type::I32)?;
                 OperatorAction::ChangeFrame(2)
             }
             Operator::I64SegmentStore { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 3, resources)?;
+                self.check_segment_memarg(memarg, 3)?;
                 self.check_operands_2(func_state, Type::Handle, Type::I64)?;
                 OperatorAction::ChangeFrame(2)
             }
             Operator::F32SegmentStore { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 2, resources)?;
+                self.check_segment_memarg(memarg, 2)?;
                 self.check_operands_2(func_state, Type::Handle, Type::F32)?;
                 OperatorAction::ChangeFrame(2)
             }
             Operator::F64SegmentStore { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 3, resources)?;
+                self.check_segment_memarg(memarg, 3)?;
                 self.check_operands_2(func_state, Type::Handle, Type::F64)?;
                 OperatorAction::ChangeFrame(2)
             }
             Operator::I32SegmentStore8 { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 0, resources)?;
+                self.check_segment_memarg(memarg, 0)?;
                 self.check_operands_2(func_state, Type::Handle, Type::I32)?;
                 OperatorAction::ChangeFrame(2)
             }
             Operator::I32SegmentStore16 { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 1, resources)?;
+                self.check_segment_memarg(memarg, 1)?;
                 self.check_operands_2(func_state, Type::Handle, Type::I32)?;
                 OperatorAction::ChangeFrame(2)
             }
             Operator::I64SegmentStore8 { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 0, resources)?;
+                self.check_segment_memarg(memarg, 0)?;
                 self.check_operands_2(func_state, Type::Handle, Type::I64)?;
                 OperatorAction::ChangeFrame(2)
             }
             Operator::I64SegmentStore16 { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 1, resources)?;
+                self.check_segment_memarg(memarg, 1)?;
                 self.check_operands_2(func_state, Type::Handle, Type::I64)?;
                 OperatorAction::ChangeFrame(2)
             }
             Operator::I64SegmentStore32 { ref memarg } => {
                 self.check_memory_safety_enabled()?;
-                self.check_memarg(memarg, 2, resources)?;
+                self.check_segment_memarg(memarg, 2)?;
                 self.check_operands_2(func_state, Type::Handle, Type::I64)?;
                 OperatorAction::ChangeFrame(2)
             }
@@ -1873,7 +1895,7 @@ impl<'a> ValidatingParser<'a> {
 
     fn check_value_type(&self, ty: Type) -> ValidatorResult<'a, ()> {
         match ty {
-            Type::I32 | Type::I64 | Type::F32 | Type::F64 | Type::V128 => Ok(()),
+            Type::I32 | Type::I64 | Type::F32 | Type::F64 | Type::Handle | Type::V128 => Ok(()),
             _ => self.create_error("invalid value type"),
         }
     }
